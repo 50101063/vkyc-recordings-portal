@@ -1,9 +1,87 @@
-# V-KYC Recordings Portal - Backend\n\nThis directory contains the backend application for the V-KYC Recordings Portal, built with Node.js and Express.js. It serves as the API layer, handling business logic, data retrieval from the PostgreSQL database, and securely serving video files from the NFS share.\n\n## Table of Contents\n\n-   [Features](#features)\n-   [Technology Stack](#technology-stack)\n-   [Prerequisites](#prerequisites)\n-   [Setup and Installation](#setup-and-installation)\n-   [Running the Application](#running-the-application)\n-   [API Endpoints](#api-endpoints)\n-   [Environment Variables](#environment-variables)\n-   [Project Structure](#project-structure)\n-   [Contributing](#contributing)\n-   [License](#license)\n\n## Features\n\n-   Secure RESTful API endpoints.\n-   Authentication via corporate Identity Provider (OAuth 2.0 / OIDC).\n-   Retrieval of V-KYC recording metadata from PostgreSQL.\n-   Streaming of video files from an NFS server.\n-   Bulk request processing for multiple LAN IDs via file upload.\n-   On-the-fly ZIP generation for bulk video downloads.\n-   Pagination, filtering, and sorting capabilities for recording lists.\n\n## Technology Stack\n\n-   **Runtime**: Node.js v20.x (LTS)\n-   **Framework**: Express.js v4.x\n-   **Database Client**: `pg` (for PostgreSQL interaction)\n-   **File Uploads**: `multer`\n-   **Archive Generation**: `archiver`\n-   **Authentication**: `passport`, `passport-oauth2` (or similar for OIDC)\n-   **Environment Variables**: `dotenv`\n\n## Prerequisites\n\nBefore you begin, ensure you have met the following requirements:\n\n-   Node.js v20.x or higher installed.\n-   npm (Node Package Manager) installed.\n-   Access to a PostgreSQL database instance.\n-   Access to the LTF NFS server (where video recordings are stored).\n-   Docker and Docker Compose (recommended for local development setup).\n\n## Setup and Installation\n\n1.  **Clone the repository:**\n    ```bash\n    git clone https://github.com/50101063/vkyc-recordings-portal.git\n    cd vkyc-recordings-portal/backend\n    ```\n\n2.  **Install dependencies:**\n    ```bash\n    npm install\n    ```\n\n3.  **Configure environment variables:**\n    Create a `.env` file in the `backend/` directory by copying `.env.example` and filling in the required values.\n\n    ```bash\n    cp .env.example .env\n    ```\n    Refer to the [Environment Variables](#environment-variables) section for details.\n\n4.  **Database Setup:**\n    Ensure your PostgreSQL database is running and accessible. The database schema will be managed via migrations. (Details on running migrations will be provided by the Database Developer).\n\n## Running the Application\n\n### Local Development\n\nTo run the application in development mode with automatic restarts on file changes:\n\n```bash\nnpm run dev\n```\n\n### Production\n\nTo run the application in production mode:\n\n```bash\nnpm start\n```\n\nThe server will typically run on `http://localhost:3000` (or the port specified in your `.env` file).\n\n## API Endpoints\n\n(Detailed API documentation will be provided separately, but a summary of key endpoints is below.)\n\n-   `POST /api/auth/login`: Initiate OAuth login flow.\n-   `GET /api/videos`: Retrieve paginated and filterable list of V-KYC records.\n-   `GET /api/videos/search?lan={LAN_ID}`: Search for a specific record by LAN.\n-   `GET /api/videos/download/{LAN_ID}`: Download a single video file.\n-   `POST /api/videos/bulk-request`: Upload a CSV/TXT file for bulk video request.\n-   `GET /api/videos/bulk-download/{requestId}`: Download a ZIP archive of videos from a bulk request.\n\n## Environment Variables\n\nThe following environment variables are required for the application to run:\n\n| Variable Name           | Description                                                 | Example Value                        |\n| :---------------------- | :---------------------------------------------------------- | :----------------------------------- |\n| `PORT`                  | The port on which the Express server will listen.           | `3000`                               |\n| `DB_HOST`               | PostgreSQL database host.                                   | `localhost`                          |\n| `DB_PORT`               | PostgreSQL database port.                                   | `5432`                               |\n| `DB_USER`               | PostgreSQL database username.                               | `vkyc_user`                          |\n| `DB_PASSWORD`           | PostgreSQL database password.                               | `mysecretpassword`                   |\
-| `DB_NAME`               | PostgreSQL database name.                                   | `vkyc_db`                            |\
-| `NFS_MOUNT_PATH`        | Local mount path for the LTF NFS server.                    | `/mnt/nfs/vkyc_recordings`           |\
-| `OAUTH_CLIENT_ID`       | OAuth Client ID for integration with Corporate IdP.         | `your_client_id`                     |\
-| `OAUTH_CLIENT_SECRET`   | OAuth Client Secret for integration with Corporate IdP.     | `your_client_secret`                 |\
-| `OAUTH_AUTHORIZATION_URL`| IdP\'s authorization endpoint.                               | `https://idp.example.com/oauth/authorize` |\
-| `OAUTH_TOKEN_URL`       | IdP\'s token exchange endpoint.                              | `https://idp.example.com/oauth/token`    |\
-| `OAUTH_CALLBACK_URL`    | Callback URL registered with IdP.                           | `http://localhost:3000/api/auth/callback` |\
-| `SESSION_SECRET`        | Secret for signing session cookies.                         | `a_very_secret_key_for_sessions`     |\n\n## Project Structure\n\n```\nbackend/\n├── config/                  # Configuration files (e.g., database, OAuth)\n│   └── index.js\n├── controllers/             # Request handling logic, interacts with services\n│   ├── authController.js\n│   └── videoController.js\n├── middleware/              # Express middleware (e.g., authentication, error handling)\n│   └── authMiddleware.js\n├── node_modules/            # Installed npm packages\n├── routes/                  # Defines API routes and links to controllers\n│   ├── authRoutes.js\n│   └── videoRoutes.js\n├── services/                # Core business logic, interacts with database/NFS\n│   └── videoService.js\n├── .env.example             # Example environment variables file\n├── .gitignore               # Files/directories to ignore in Git\n├── index.js                 # Main application entry point\n├── package.json             # Project metadata and dependencies\n└── README.md                # This file\n```\n\n## Contributing\n\nPlease refer to the `CONTRIBUTING.md` in the project root (if available) and the [Developer Guidelines](./architecture/4_developer_guidelines.md) in the `architecture/` folder for contribution guidelines.\n\n## License\n\n(To be determined, typically MIT or Apache 2.0)\n
+# V-KYC Recordings Portal - Backend
+
+This directory contains the backend application for the V-KYC Recordings Portal, built using Node.js and Express.js. It serves as the API layer, handling business logic, data retrieval from PostgreSQL, and secure streaming of video files from the NFS share.
+
+## Technologies Used
+
+*   **Node.js**: v20.x (LTS)
+*   **Express.js**: v4.x
+*   **PostgreSQL**: Database client for interacting with the metadata database.
+*   **Passport.js**: For OAuth 2.0 / OpenID Connect authentication.
+*   **Multer**: Middleware for handling `multipart/form-data`, primarily for file uploads.
+*   **Archiver**: For creating `.zip` archives on-the-fly for bulk downloads.
+*   **dotenv**: For loading environment variables from a `.env` file.
+*   **csv-parser**: For parsing uploaded CSV/TXT files containing LAN IDs.
+
+## Setup and Execution Instructions
+
+### Prerequisites
+
+*   Node.js v20.x installed.
+*   npm (Node Package Manager) installed.
+*   Access to a PostgreSQL database instance with the `vkyc_recordings` table populated (refer to `architecture/3_data_flow_and_apis.md` for schema).
+*   Access to the LTF NFS server where video recordings are stored (the backend server must have this mounted).
+*   Corporate Identity Provider (IdP) configured for OAuth 2.0 / OIDC.
+
+### Installation
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/50101063/vkyc-recordings-portal.git
+    cd vkyc-recordings-portal/backend
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+### Configuration
+
+Create a `.env` file in the `backend/` directory with the following environment variables:
+
+```dotenv
+PORT=3001
+DATABASE_URL="postgresql://user:password@host:port/database"
+OAUTH_CLIENT_ID="your_oauth_client_id"
+OAUTH_CLIENT_SECRET="your_oauth_client_secret"
+OAUTH_AUTHORIZATION_URL="https://idp.example.com/oauth/authorize"
+OAUTH_TOKEN_URL="https://idp.example.com/oauth/token"
+OAUTH_USER_PROFILE_URL="https://idp.example.com/oauth/userinfo" # Or similar endpoint to get user details
+OAUTH_CALLBACK_URL="http://localhost:3001/api/auth/callback"
+SESSION_SECRET="a_very_secret_key_for_express_session"
+NFS_MOUNT_PATH="/mnt/nfs/vkyc_recordings" # Path where NFS is mounted on the backend server
+```
+
+**Note:** Ensure `OAUTH_CALLBACK_URL` matches the redirect URI configured in your IdP. For production, `http://localhost:3001` should be replaced with your actual domain.
+
+### Running the Application
+
+To start the backend server:
+
+```bash
+npm start
+```
+
+The server will typically run on `http://localhost:3001` (or the `PORT` specified in your `.env` file).
+
+## API Endpoints
+
+Refer to `architecture/3_data_flow_and_apis.md` for a detailed API specification.
+
+## Project Structure
+
+```
+backend/
+├── config/             # Configuration files
+├── controllers/        # Handles request/response logic
+├── middleware/         # Express middleware (e.g., authentication)
+├── routes/             # API route definitions
+├── services/           # Core business logic and database interactions
+├── utils/              # Utility functions (e.g., database connection)
+├── .env.example        # Example environment variables
+├── package.json        # Project dependencies and scripts
+├── package-lock.json
+├── server.js           # Main application entry point
+└── README.md           # This file
+```
