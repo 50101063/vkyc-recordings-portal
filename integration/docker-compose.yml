@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_BASE_URL=http://backend:5000
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - database
+    environment:
+      # Database connection environment variables
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=vkyc_db
+      # You might need to add other backend specific environment variables here
+      # For NFS access, consider a volume mount if running on a host with NFS mounted
+      # - NFS_MOUNT_PATH=/mnt/nfs/vkyc_recordings # Example, adjust as per actual NFS mount
+    volumes:
+      # Example of how to mount a host directory into the container for NFS access
+      # This assumes /path/to/host/nfs/mount is where your NFS server is mounted on the Docker host
+      # - /path/to/host/nfs/mount:/app/nfs_data:ro
+      - ../backend:/app # Mount backend code for live reloading during development (optional)
+
+  database:
+    build:
+      context: ../database
+      dockerfile: Dockerfile
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=vkyc_db
+    volumes:
+      - db_data:/var/lib/postgresql/data # Persistent data volume
+
+volumes:
+  db_data:
